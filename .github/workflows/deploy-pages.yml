@@ -1,0 +1,53 @@
+# Deploy static site to GitHub Pages
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '*.html'
+      - '*.css'
+      - '*.js'
+      - 'assets/**'
+      - 'robots.txt'
+      - 'sitemap.xml'
+      - 'organization-schema.json'
+  workflow_dispatch:
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate before deploy
+        run: |
+          # Quick sanity checks
+          test -f index.html || { echo "No index.html found"; exit 1; }
+          python3 -c "import json; json.load(open('organization-schema.json'))" || { echo "Invalid JSON"; exit 1; }
+          python3 -c "import xml.etree.ElementTree as ET; ET.parse('sitemap.xml')" || { echo "Invalid XML"; exit 1; }
+          echo "Pre-deploy validation passed"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
