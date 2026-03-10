@@ -1,83 +1,774 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="roaddb - BlackRoad product. Start free trial today.">
-    <meta name="robots" content="index, follow">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://blackroad.io/roaddb">
-    <meta property="og:site_name" content="BlackRoad">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:site" content="@BlackRoadOS">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoadDB - Managed Database</title>
+    <title>RoadDB - Managed Databases | BlackRoad OS</title>
+
+    <!-- SEO -->
+    <meta name="description" content="RoadDB - Fully managed PostgreSQL, MongoDB, and Redis databases. Auto-scaling, automated backups, and zero-downtime deployments. Starting at $15/month.">
+    <meta name="keywords" content="managed database, PostgreSQL, MongoDB, Redis, cloud database, DBaaS, BlackRoad">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://blackroad.io/roaddb">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://blackroad.io/roaddb">
+    <meta property="og:title" content="RoadDB - Managed Databases">
+    <meta property="og:description" content="Fully managed PostgreSQL, MongoDB, and Redis. Auto-scaling, backups, and zero-downtime deployments.">
+    <meta property="og:site_name" content="BlackRoad OS">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@BlackRoadOS">
+    <meta name="twitter:title" content="RoadDB - Managed Databases">
+    <meta name="twitter:description" content="Fully managed PostgreSQL, MongoDB, and Redis. Starting at $15/month.">
+
+    <!-- Schema.org -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "RoadDB",
+        "applicationCategory": "Database Management",
+        "operatingSystem": "Cloud",
+        "description": "Fully managed database service supporting PostgreSQL, MongoDB, and Redis",
+        "offers": {
+            "@type": "Offer",
+            "price": "15.00",
+            "priceCurrency": "USD",
+            "priceValidUntil": "2027-12-31"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "BlackRoad OS, Inc.",
+            "url": "https://blackroad.io"
+        }
+    }
+    </script>
+
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --blue: #2979FF;
+            --purple: #9C27B0;
+            --bg: #000000;
+            --surface: #0a0a0a;
+            --border: #1a1a1a;
+            --text: #ffffff;
+            --text-dim: #888888;
+            --green: #00c853;
+        }
+
         body {
-            background: #000000;
-            color: #FFFFFF;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Nav */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .logo span { color: var(--blue); }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--text); }
+
+        .btn {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565C0;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        /* Hero */
+        .hero {
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 6rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(41, 121, 255, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            background: rgba(41, 121, 255, 0.1);
+            border: 1px solid rgba(41, 121, 255, 0.3);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            color: var(--blue);
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-sub {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            color: var(--text-dim);
+            max-width: 600px;
+            margin-bottom: 3rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Database cards */
+        .db-section {
+            padding: 6rem 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .section-sub {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 4rem;
+        }
+
+        .db-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .db-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.3s;
+        }
+
+        .db-card:hover {
+            border-color: var(--blue);
+            transform: translateY(-4px);
+        }
+
+        .db-card-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: block;
+        }
+
+        .db-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .db-card p {
+            color: var(--text-dim);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .db-card ul {
+            list-style: none;
+        }
+
+        .db-card li {
+            padding: 0.3rem 0;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .db-card li::before {
+            content: '\2713';
+            color: var(--green);
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+
+        /* Features */
+        .features {
+            padding: 6rem 2rem;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .feature {
+            padding: 1.5rem;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(41, 121, 255, 0.1);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
         }
-        .hero {
+
+        .feature h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 6rem 2rem;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .price-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
             text-align: center;
-            max-width: 800px;
-            padding: 2rem;
         }
-        h1 {
-            font-size: 6rem;
+
+        .price-card.featured {
+            border-color: var(--blue);
+            position: relative;
+        }
+
+        .price-card.featured::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--blue);
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .price-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-amount {
+            font-size: 3rem;
             font-weight: 900;
-            background: linear-gradient(135deg, #2979FF, #9C27B0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .price-amount span {
+            font-size: 1rem;
+            color: var(--text-dim);
+            font-weight: 400;
+        }
+
+        .price-desc {
+            color: var(--text-dim);
+            font-size: 0.85rem;
             margin-bottom: 2rem;
         }
-        .db-types {
+
+        .price-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .price-card li {
+            padding: 0.4rem 0;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .price-card li::before {
+            content: '\2713';
+            color: var(--green);
+            margin-right: 0.5rem;
+        }
+
+        /* Code sample */
+        .code-section {
+            padding: 6rem 2rem;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .code-block {
+            background: #111;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            padding: 0.75rem 1rem;
+            background: #1a1a1a;
+            border-bottom: 1px solid var(--border);
             display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .code-dot.red { background: #ff5f57; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #28c840; }
+
+        .code-content {
+            padding: 1.5rem;
+            font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+
+        .code-content .comment { color: #6a737d; }
+        .code-content .keyword { color: #ff7b72; }
+        .code-content .string { color: #a5d6ff; }
+        .code-content .func { color: #d2a8ff; }
+        .code-content .var { color: #79c0ff; }
+
+        /* Footer */
+        footer {
+            padding: 4rem 2rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
             gap: 2rem;
-            justify-content: center;
-            margin: 3rem 0;
         }
-        .db-type {
-            background: rgba(41, 121, 255, 0.1);
-            padding: 2rem;
-            border-radius: 20px;
-            border: 2px solid #2979FF;
-            min-width: 200px;
+
+        .footer-col h4 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
         }
-        .db-icon { font-size: 3rem; margin-bottom: 1rem; }
-        .pricing {
-            font-size: 1.5rem;
-            margin-top: 3rem;
+
+        .footer-col a {
+            display: block;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.25rem 0;
+            transition: color 0.2s;
         }
-        .price { color: #2979FF; font-weight: 900; }
+
+        .footer-col a:hover { color: var(--text); }
+
+        .footer-bottom {
+            max-width: 1100px;
+            margin: 3rem auto 0;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* Status indicator */
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 200, 83, 0.1);
+            border: 1px solid rgba(0, 200, 83, 0.3);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            color: var(--green);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav { padding: 1rem; }
+            .nav-links { display: none; }
+            .db-grid, .feature-grid, .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            .footer-content {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="hero">
-        <h1>RoadDB</h1>
-        <p style="font-size: 1.5rem; opacity: 0.9;">Fully managed databases</p>
-        <div class="db-types">
-            <div class="db-type">
-                <div class="db-icon">🐘</div>
-                <strong>PostgreSQL</strong>
-            </div>
-            <div class="db-type">
-                <div class="db-icon">🍃</div>
-                <strong>MongoDB</strong>
-            </div>
-            <div class="db-type">
-                <div class="db-icon">🔴</div>
-                <strong>Redis</strong>
-            </div>
+
+<nav>
+    <a href="https://blackroad.io" class="logo">Black<span>Road</span></a>
+    <ul class="nav-links">
+        <li><a href="#databases">Databases</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#quickstart">Quick Start</a></li>
+    </ul>
+    <div style="display:flex;gap:0.75rem;align-items:center;">
+        <span class="status"><span class="status-dot"></span> All systems operational</span>
+        <a href="https://blackroad.io/dashboard" class="btn btn-primary">Dashboard</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <span class="badge">Part of BlackRoad OS</span>
+    <h1>RoadDB</h1>
+    <p class="hero-sub">Fully managed databases. Deploy PostgreSQL, MongoDB, or Redis in seconds. Auto-scaling, automated backups, zero-downtime deployments.</p>
+    <div class="hero-actions">
+        <a href="https://blackroad.io/dashboard" class="btn btn-primary">Start Free Trial</a>
+        <a href="#quickstart" class="btn btn-outline">View Quick Start</a>
+    </div>
+</section>
+
+<section class="db-section" id="databases">
+    <h2 class="section-title">Choose Your Database</h2>
+    <p class="section-sub">Production-ready databases with automated management. Pick one or use them all.</p>
+
+    <div class="db-grid">
+        <div class="db-card">
+            <span class="db-card-icon" role="img" aria-label="PostgreSQL">&#x1F418;</span>
+            <h3>PostgreSQL</h3>
+            <p>The world's most advanced open-source relational database. Full SQL support with extensions.</p>
+            <ul>
+                <li>PostgreSQL 16 &amp; 17</li>
+                <li>PostGIS, pgvector, pg_trgm</li>
+                <li>Connection pooling (PgBouncer)</li>
+                <li>Point-in-time recovery</li>
+                <li>Read replicas</li>
+            </ul>
         </div>
-        <div class="pricing">
-            Starting at <span class="price">$15/month</span>
+
+        <div class="db-card">
+            <span class="db-card-icon" role="img" aria-label="MongoDB">&#x1F343;</span>
+            <h3>MongoDB</h3>
+            <p>Flexible document database for modern applications. Schema-less with powerful querying.</p>
+            <ul>
+                <li>MongoDB 7.x &amp; 8.x</li>
+                <li>Replica sets built-in</li>
+                <li>Atlas-compatible connection strings</li>
+                <li>Automated sharding</li>
+                <li>Change streams</li>
+            </ul>
+        </div>
+
+        <div class="db-card">
+            <span class="db-card-icon" role="img" aria-label="Redis">&#x1F534;</span>
+            <h3>Redis</h3>
+            <p>In-memory data store for caching, sessions, queues, and real-time features.</p>
+            <ul>
+                <li>Redis 7.x</li>
+                <li>Redis Cluster mode</li>
+                <li>Pub/Sub &amp; Streams</li>
+                <li>Persistence (RDB + AOF)</li>
+                <li>Sub-millisecond latency</li>
+            </ul>
         </div>
     </div>
+</section>
+
+<section class="features" id="features">
+    <h2 class="section-title">Built for Production</h2>
+    <p class="section-sub">Everything you need to run databases in production without a dedicated DBA.</p>
+
+    <div class="feature-grid">
+        <div class="feature">
+            <div class="feature-icon">&#x1F512;</div>
+            <h3>Security</h3>
+            <p>Encryption at rest and in transit. VPC peering, IP allowlists, and SOC 2 compliance.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">&#x1F4BE;</div>
+            <h3>Automated Backups</h3>
+            <p>Daily automated backups with 30-day retention. One-click restore to any point in time.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">&#x1F4C8;</div>
+            <h3>Auto-Scaling</h3>
+            <p>Scale compute and storage independently. Automatic scaling based on usage patterns.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">&#x1F30D;</div>
+            <h3>Global Regions</h3>
+            <p>Deploy in 12+ regions worldwide. Multi-region replication for global applications.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">&#x1F4CA;</div>
+            <h3>Monitoring</h3>
+            <p>Real-time metrics, slow query analysis, and alerts. Integrated with your observability stack.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">&#x26A1;</div>
+            <h3>Zero Downtime</h3>
+            <p>Rolling upgrades, automated failover, and blue-green deployments. 99.99% uptime SLA.</p>
+        </div>
+    </div>
+</section>
+
+<section class="code-section" id="quickstart">
+    <h2 class="section-title">Connect in Seconds</h2>
+    <p class="section-sub">Standard connection strings. Works with every ORM and driver you already use.</p>
+
+    <div class="code-container">
+        <div class="code-block">
+            <div class="code-header">
+                <span class="code-dot red"></span>
+                <span class="code-dot yellow"></span>
+                <span class="code-dot green"></span>
+            </div>
+            <pre class="code-content"><span class="comment"># Connect to your RoadDB PostgreSQL instance</span>
+<span class="keyword">import</span> <span class="var">psycopg2</span>
+
+conn = <span class="var">psycopg2</span>.<span class="func">connect</span>(
+    <span class="string">"postgresql://user:pass@your-db.roaddb.blackroad.io:5432/myapp"</span>
+)
+
+<span class="comment"># Or use MongoDB</span>
+<span class="keyword">from</span> <span class="var">pymongo</span> <span class="keyword">import</span> <span class="var">MongoClient</span>
+
+client = <span class="func">MongoClient</span>(
+    <span class="string">"mongodb+srv://user:pass@your-db.roaddb.blackroad.io/myapp"</span>
+)
+
+<span class="comment"># Or Redis</span>
+<span class="keyword">import</span> <span class="var">redis</span>
+
+r = <span class="var">redis</span>.<span class="func">Redis</span>.<span class="func">from_url</span>(
+    <span class="string">"rediss://user:pass@your-db.roaddb.blackroad.io:6379"</span>
+)</pre>
+        </div>
+    </div>
+</section>
+
+<section class="pricing" id="pricing">
+    <h2 class="section-title">Simple Pricing</h2>
+    <p class="section-sub">Pay for what you use. No hidden fees, no egress charges.</p>
+
+    <div class="pricing-grid">
+        <div class="price-card">
+            <div class="price-name">Starter</div>
+            <div class="price-amount">$15<span>/mo</span></div>
+            <div class="price-desc">For side projects and development</div>
+            <ul>
+                <li>1 vCPU, 1 GB RAM</li>
+                <li>10 GB storage</li>
+                <li>Daily backups (7-day retention)</li>
+                <li>Shared compute</li>
+                <li>Community support</li>
+            </ul>
+            <a href="https://blackroad.io/dashboard" class="btn btn-outline" style="width:100%;text-align:center;">Get Started</a>
+        </div>
+
+        <div class="price-card featured">
+            <div class="price-name">Pro</div>
+            <div class="price-amount">$99<span>/mo</span></div>
+            <div class="price-desc">For production applications</div>
+            <ul>
+                <li>4 vCPU, 16 GB RAM</li>
+                <li>100 GB SSD storage</li>
+                <li>Point-in-time recovery</li>
+                <li>Dedicated compute</li>
+                <li>Read replicas</li>
+                <li>Priority support</li>
+            </ul>
+            <a href="https://blackroad.io/dashboard" class="btn btn-primary" style="width:100%;text-align:center;">Start Free Trial</a>
+        </div>
+
+        <div class="price-card">
+            <div class="price-name">Enterprise</div>
+            <div class="price-amount">Custom</div>
+            <div class="price-desc">For large-scale deployments</div>
+            <ul>
+                <li>Up to 128 vCPU, 1 TB RAM</li>
+                <li>Unlimited storage</li>
+                <li>Multi-region replication</li>
+                <li>VPC peering</li>
+                <li>99.99% SLA</li>
+                <li>Dedicated support engineer</li>
+            </ul>
+            <a href="mailto:sales@blackroad.io" class="btn btn-outline" style="width:100%;text-align:center;">Contact Sales</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-col">
+            <h4>Product</h4>
+            <a href="#databases">Databases</a>
+            <a href="#features">Features</a>
+            <a href="#pricing">Pricing</a>
+            <a href="https://blackroad.io/roaddb/changelog">Changelog</a>
+        </div>
+        <div class="footer-col">
+            <h4>Resources</h4>
+            <a href="https://docs.blackroad.io/roaddb">Documentation</a>
+            <a href="https://api.blackroad.io/roaddb">API Reference</a>
+            <a href="https://status.blackroad.io">System Status</a>
+        </div>
+        <div class="footer-col">
+            <h4>BlackRoad OS</h4>
+            <a href="https://blackroad.io">Home</a>
+            <a href="https://blackroad.io/about">About</a>
+            <a href="https://github.com/BlackRoad-OS">GitHub</a>
+        </div>
+        <div class="footer-col">
+            <h4>Legal</h4>
+            <a href="https://blackroad.io/terms">Terms of Service</a>
+            <a href="https://blackroad.io/privacy">Privacy Policy</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>&copy; 2024-2026 BlackRoad OS, Inc. All rights reserved.</span>
+        <span>Not affiliated with BlackRock, Inc.</span>
+    </div>
+</footer>
+
 </body>
 </html>

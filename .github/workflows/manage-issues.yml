@@ -1,0 +1,98 @@
+# Manage issues - close stale, label, prevent spam
+name: Issue Management
+
+on:
+  issues:
+    types: [opened, edited]
+  schedule:
+    # Run weekly on Monday at 9am UTC - not every 6 hours
+    - cron: '0 9 * * 1'
+
+concurrency:
+  group: issue-mgmt-${{ github.event.issue.number || 'scheduled' }}
+  cancel-in-progress: true
+
+permissions:
+  issues: write
+
+jobs:
+  triage-new-issue:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-label issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          title_lower=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]')
+
+          # Auto-label based on title keywords
+          if echo "$title_lower" | grep -qE "bug|error|fix|broken|crash|fail"; then
+            gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label "bug" 2>/dev/null || true
+          fi
+
+          if echo "$title_lower" | grep -qE "feature|request|add|enhance|improve"; then
+            gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label "enhancement" 2>/dev/null || true
+          fi
+
+          if echo "$title_lower" | grep -qE "question|help|how"; then
+            gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label "question" 2>/dev/null || true
+          fi
+
+          if echo "$title_lower" | grep -qE "doc|readme|typo"; then
+            gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label "documentation" 2>/dev/null || true
+          fi
+
+      - name: Detect and close spam
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          is_spam=false
+
+          # Empty title or body
+          if [ -z "$ISSUE_TITLE" ] || [ ${#ISSUE_TITLE} -lt 5 ]; then
+            is_spam=true
+          fi
+
+          # Detect common spam patterns
+          combined=$(echo "$ISSUE_TITLE $ISSUE_BODY" | tr '[:upper:]' '[:lower:]')
+          if echo "$combined" | grep -qiE "buy now|click here|free money|casino|viagra|crypto airdrop"; then
+            is_spam=true
+          fi
+
+          if [ "$is_spam" = true ]; then
+            gh issue close "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" \
+              --comment "This issue was automatically closed as spam. If this was a mistake, please reopen with a clear description." \
+              2>/dev/null || true
+            gh issue edit "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --add-label "spam" 2>/dev/null || true
+          fi
+
+  close-stale:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close stale issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find issues with no activity in 60 days
+          stale_date=$(date -d '60 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -v-60d +%Y-%m-%dT%H:%M:%SZ)
+
+          echo "Looking for issues with no activity since $stale_date"
+
+          # List open issues updated before stale date
+          gh issue list --repo "$GITHUB_REPOSITORY" --state open --json number,updatedAt,labels \
+            --jq ".[] | select(.updatedAt < \"$stale_date\") | .number" | \
+          while read -r issue_num; do
+            [ -z "$issue_num" ] && continue
+            echo "Closing stale issue #$issue_num"
+            gh issue close "$issue_num" --repo "$GITHUB_REPOSITORY" \
+              --comment "Closing due to inactivity (60 days). Feel free to reopen if still relevant." \
+              2>/dev/null || true
+          done

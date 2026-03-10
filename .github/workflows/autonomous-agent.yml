@@ -1,72 +1,103 @@
-# .github/workflows/autonomous-agent.yml
-# Drop this in any repo - agent handles everything
+# Autonomous repo agent - handles CI, validation, and auto-merge
+# Runs only when there's actual work to do
 
 name: Autonomous Repo Agent
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened]
   push:
-    branches: [main]
-  schedule:
-    - cron: '0 */6 * * *'  # Every 6 hours, agent checks in
+    branches: [master]
+
+# Prevent duplicate runs - cancel in-progress runs for same PR/branch
+concurrency:
+  group: agent-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
-  issues: write
 
 jobs:
-  autonomous-build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          
-      - name: Detect Project Type & Run Tests
-        id: detect
-        run: |
-          # Auto-detect and run appropriate tests
-          if [ -f "package.json" ]; then
-            npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts 2>/dev/null || true
-            npm test 2>/dev/null || echo "tests=skipped" >> $GITHUB_OUTPUT
-          elif [ -f "requirements.txt" ]; then
-            pip install -r requirements.txt 2>/dev/null || true
-            pytest 2>/dev/null || python -m unittest discover 2>/dev/null || echo "tests=skipped" >> $GITHUB_OUTPUT
-          elif [ -f "Cargo.toml" ]; then
-            cargo test 2>/dev/null || echo "tests=skipped" >> $GITHUB_OUTPUT
-          elif [ -f "go.mod" ]; then
-            go test ./... 2>/dev/null || echo "tests=skipped" >> $GITHUB_OUTPUT
-          elif [ -f "sfdx-project.json" ]; then
-            # Salesforce - just validate XML
-            find . -name "*.xml" -exec xmllint --noout {} \; 2>/dev/null || true
-            echo "tests=skipped" >> $GITHUB_OUTPUT
-          else
-            echo "tests=skipped" >> $GITHUB_OUTPUT
-          fi
-          echo "status=success" >> $GITHUB_OUTPUT
 
-      - name: Build if needed
+      - name: Validate HTML
         run: |
-          if [ -f "package.json" ]; then
-            npm run build 2>/dev/null || true
-          fi
+          echo "Validating repository files..."
+          errors=0
 
-      - name: Auto-merge PR
-        if: github.event_name == 'pull_request'
+          # Check HTML files are well-formed
+          for f in $(find . -name "*.html" -not -path "./.git/*"); do
+            if ! grep -q "<!DOCTYPE html>" "$f"; then
+              echo "WARNING: $f missing DOCTYPE"
+            fi
+            echo "OK: $f"
+          done
+
+          # Check JSON files are valid
+          for f in $(find . -name "*.json" -not -path "./.git/*" -not -path "./node_modules/*"); do
+            if python3 -c "import json; json.load(open('$f'))" 2>/dev/null; then
+              echo "OK: $f"
+            else
+              echo "FAIL: $f is not valid JSON"
+              errors=$((errors + 1))
+            fi
+          done
+
+          # Check XML files are well-formed
+          for f in $(find . -name "*.xml" -not -path "./.git/*"); do
+            if python3 -c "import xml.etree.ElementTree as ET; ET.parse('$f')" 2>/dev/null; then
+              echo "OK: $f"
+            else
+              echo "FAIL: $f is not valid XML"
+              errors=$((errors + 1))
+            fi
+          done
+
+          if [ $errors -gt 0 ]; then
+            echo "Validation failed with $errors error(s)"
+            exit 1
+          fi
+          echo "All files validated successfully"
+
+      - name: Check links in HTML
+        run: |
+          # Verify no broken internal references
+          for f in $(find . -name "*.html" -not -path "./.git/*"); do
+            echo "Checking links in $f"
+            # Extract href/src values and verify local files exist
+            grep -oP '(?:href|src)="(?!http|//|#|mailto)([^"]+)"' "$f" | \
+              sed 's/.*="\(.*\)"/\1/' | while read -r link; do
+                if [ ! -f "$link" ] && [ ! -f "./$link" ]; then
+                  echo "WARNING: Broken local link '$link' in $f"
+                fi
+              done
+          done
+
+  auto-merge:
+    if: github.event_name == 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Auto-merge if validation passes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          # Enable auto-merge immediately - don't wait
-          gh pr merge ${{ github.event.pull_request.number }} --auto --squash || \
-          gh pr merge ${{ github.event.pull_request.number }} --squash --admin || \
-          echo "Will merge on next run"
-          
-      - name: Report Status
-        if: always()
-        run: |
-          echo "✅ Autonomous agent completed"
-          echo "Repo: ${{ github.repository }}"
-          echo "Event: ${{ github.event_name }}"
-          echo "Status: Success - auto-handling enabled"
+          echo "Validation passed for PR #$PR_NUMBER"
+
+          # Get PR info
+          pr_author=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json author --jq '.author.login')
+          echo "PR author: $pr_author"
+
+          # Enable auto-merge (squash) - respects branch protection rules
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --auto --squash || {
+            echo "Auto-merge not available (branch protection may require reviews)"
+            echo "PR is validated and ready for manual merge"
+          }
