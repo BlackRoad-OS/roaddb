@@ -1,29 +1,20 @@
 # roaddb
 
-Database layer for BlackRoad
+Distributed database service
 
-## Part of BlackRoad OS
+## Organization
 
-This repository is part of the [BlackRoad OS](https://blackroad.io) ecosystem - an enterprise AI infrastructure platform.
+**BlackRoad-OS** — Core platform — websites, integrations, coordination
 
-## Quick Start
+## BlackRoad OS
 
-```bash
-# Clone this repository
-git clone https://github.com/BlackRoad-OS/roaddb.git
-cd roaddb
-```
+BlackRoad OS is a distributed AI operating system — 20 domains, 668 repositories, 1,000 AI agents, and sovereign infrastructure running on Raspberry Pis and Hailo-8 accelerators. No cloud dependency.
 
-## Documentation
+- [blackroad.io](https://blackroad.io) — Main platform
+- [docs.blackroad.io](https://docs.blackroad.io) — Documentation
+- [GitHub](https://github.com/BlackRoad-OS) — This organization
 
-- [BlackRoad OS Documentation](https://docs.blackroad.io)
-- [API Reference](https://api.blackroad.io)
-- [Support](https://support.blackroad.io)
+**Language:** HTML
 
-## License
 
-Copyright © 2024-2026 BlackRoad OS, Inc. All rights reserved.
-
----
-
-🖤 Built with BlackRoad OS
+*© 2024-2026 BlackRoad OS, Inc. All Rights Reserved.*
